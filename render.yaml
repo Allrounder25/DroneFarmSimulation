@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: rl-simulation-backend
+    env: python
+    region: oregon
+    plan: free
+    buildCommand: "cd backend && ./build.sh"
+    startCommand: "cd backend && gunicorn -w 4 -k uvicorn.workers.UvicornWorker app:app"
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.10.0
+  - type: web
+    name: rl-simulation-frontend
+    env: static
+    region: oregon
+    plan: free
+    staticPublishPath: frontend
+    buildCommand: "echo 'No build command needed for frontend'"
+    startCommand: "echo 'No start command needed for frontend'"
+    healthCheckPath: /

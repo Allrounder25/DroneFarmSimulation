@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RL Farm Simulator</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="app-container">
+
+        <aside id="left-panel">
+            <div class="panel-section">
+                <h3>Tools</h3>
+                <div class="item-box">
+                    <div class="item" id="pickaxe" draggable="true" title="Pickaxe" data-item-type="tool">
+                        <img src="images/pickaxe.png" alt="Pickaxe">
+                    </div>
+                    <div class="item" id="harvester" draggable="true" title="Harvester" data-item-type="tool">
+                        <img src="images/harvester.png" alt="Harvester">
+                    </div>
+                </div>
+            </div>
+            <div class="panel-section">
+                <h3>Warehouse</h3>
+                <div class="item-box">
+                    <div class="item" id="drone-item" draggable="true" title="Place Drone" data-item-type="vehicle">
+                        <img src="images/drone.png" alt="Drone">
+                    </div>
+                </div>
+            </div>
+            <div class="panel-section">
+                <h3>Status</h3>
+                <div id="status-box">
+                    <p>Total Lands: <span id="total-lands-status">0</span></p>
+                    <p>Obstacles: <span id="obstacles-status">0</span></p>
+                    <p>Farming Area: <span id="farming-area-status">0</span></p>
+                    <p>Crops Collected: <span id="crops-collected-status">0</span></p>
+                </div>
+            </div>
+            <div class="panel-section">
+                <h3>Activity Log</h3>
+                <div id="status-box-messages">
+                    <p id="status-text">Create a farm to begin.</p>
+                </div>
+            </div>
+            <div id="dustbin" title="Drag farm items here to clear">
+                <img src="images/dustbin.png" alt="Dustbin">
+            </div>
+        </aside>
+
+        <main id="main-content">
+            <div id="farm-container">
+                <div id="farm-grid"></div>
+                <div id="path-overlay"></div>
+            </div>
+        </main>
+
+        <aside id="right-panel">
+            <div class="panel-section">
+                <h3>Controls</h3>
+                <div class="control-group">
+                    <label for="farm-width">Width:</label>
+                    <input type="number" id="farm-width" value="4" min="1" max="50">
+                    <label for="farm-height">Height:</label>
+                    <input type="number" id="farm-height" value="4" min="1" max="50">
+                </div>
+                <button id="create-grid-btn">Create Farm</button>
+            </div>
+            <div class="panel-section">
+                <h3>Day <span id="day-display">0</span></h3>
+                <ul id="todo-list">
+                    <!-- To-do items will be populated here -->
+                </ul>
+                <button id="next-day-btn" disabled>Next Day</button>
+            </div>
+            <div class="panel-section">
+                <h3>Tasks</h3>
+                <div class="control-group">
+                    <label for="task-select">Task Selection:</label>
+                    <select id="task-select">
+                        <option value="go-to-selected">Go to Selected</option>
+                        <option value="select-all">Select All</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="method-select">Method:</label>
+                    <select id="method-select">
+                        <option value="explore">Explore</option>
+                        <option value="plant-seeds">Plant Seeds</option>
+                        <option value="pesticide-control">Pesticide Control</option>
+                    </select>
+                </div>
+                <div class="control-group">
+                    <label for="algorithm-select">Algorithm:</label>
+                    <select id="algorithm-select">
+                        <option value="astar_multi">A* Multi-Goal</option>
+                        <option value="tsp_nearest_neighbor">TSP Nearest Neighbor</option>
+                        <option value="scan">Scan</option>
+                    </select>
+                </div>
+                <button id="start-btn" disabled>Start Simulation</button>
+            </div>
+        </aside>
+
+    </div>
+
+    <section id="results-section">
+        <h2>Simulation Results</h2>
+        <div id="results-content">
+            <!-- Results will be populated here -->
+        </div>
+        <button id="close-results-btn">Close</button>
+    </section>
+
+    <div id="congrats-popup" class="popup-hidden">
+        <div class="popup-content">
+            <h2>Congratulations!</h2>
+            <p>You have finished the simulation!</p>
+            <div id="final-stats"></div>
+            <button id="close-congrats-btn">Okay</button>
+        </div>
+    </div>
+
+    <div id="info-popup" class="popup-hidden">
+        <div class="popup-content">
+            <h2 id="info-popup-title"></h2>
+            <p id="info-popup-message"></p>
+            <button id="close-info-btn">Okay</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
