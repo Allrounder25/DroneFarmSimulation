@@ -39,6 +39,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- Root Endpoint for Health Check ---
+@app.get("/")
+def read_root():
+    return {"message": "RL Simulation API is running."}
+
 # --- API Endpoint ---
 @app.post("/run-simulation", response_model=PathResponse)
 async def run_simulation(request: SimulationRequest):
