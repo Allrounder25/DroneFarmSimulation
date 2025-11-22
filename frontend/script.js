@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- CONFIGURATION & STATE ---
     const BLOCK_SIZE_PX = 200;
-    const API_URL = 'http://127.0.0.1:8000/run-simulation';
+    const API_URL = '/run-simulation';
 
     const CARD_OUTCOMES = [
         { type: 'barren_land', probability: 0.7 },
