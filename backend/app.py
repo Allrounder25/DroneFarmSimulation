@@ -1,5 +1,6 @@
 import uvicorn
 import time
+import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
@@ -93,7 +94,8 @@ app.add_middleware(
 )
 
 # --- Mount Frontend ---
-app.mount("/", StaticFiles(directory="../frontend", html=True), name="static")
+static_files_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
+app.mount("/", StaticFiles(directory=static_files_path, html=True), name="static")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
