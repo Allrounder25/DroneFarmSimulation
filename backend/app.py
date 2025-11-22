@@ -27,22 +27,11 @@ class PathResponse(BaseModel):
     path: List[Position]
     calculation_time_ms: float
 
+from fastapi.staticfiles import StaticFiles
+ 
+ 
 # --- FastAPI App Initialization ---
 app = FastAPI()
-
-# --- CORS Configuration ---
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# --- Root Endpoint for Health Check ---
-@app.get("/")
-def read_root():
-    return {"message": "RL Simulation API is running."}
 
 # --- API Endpoint ---
 @app.post("/run-simulation", response_model=PathResponse)
@@ -93,6 +82,18 @@ async def run_simulation(request: SimulationRequest):
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+# --- CORS Configuration ---
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- Mount Frontend ---
+app.mount("/", StaticFiles(directory="../frontend", html=True), name="static")
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
