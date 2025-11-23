@@ -35,7 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let dronePlaced = false;
     let dronePos = { x: 0, y: 0 };
     let goalPos = null;
-    let draggedItemInfo = null;
+    let selectedTool = null;
+    let dronePlacementMode = false;
     let currentDay = 0;
     let todos = [];
 
@@ -74,9 +75,38 @@ document.addEventListener('DOMContentLoaded', () => {
     const obstaclesStatus = document.getElementById('obstacles-status');
     const farmingAreaStatus = document.getElementById('farming-area-status');
     const cropsCollectedStatus = document.getElementById('crops-collected-status');
-
+    const cursor = document.querySelector('.cursor');
 
     // --- CORE FUNCTIONS ---
+
+    function onToolClick(e) {
+        const tool = e.currentTarget;
+        const toolId = tool.id;
+
+        if (toolId === 'drone-item') {
+            dronePlacementMode = true;
+            if(selectedTool){
+                document.getElementById(selectedTool).classList.remove('selected');
+                selectedTool = null;
+            }
+            cursor.style.backgroundImage = `url('images/drone.png')`;
+            return;
+        }
+
+        if (selectedTool === toolId) {
+            selectedTool = null;
+            cursor.style.backgroundImage = `url('images/cursor.png')`;
+            tool.classList.remove('selected');
+        } else {
+            if(selectedTool){
+                document.getElementById(selectedTool).classList.remove('selected');
+            }
+            selectedTool = toolId;
+            cursor.style.backgroundImage = `url('images/${toolId}.png')`;
+            tool.classList.add('selected');
+            dronePlacementMode = false;
+        }
+    }
 
     function updateStatus(text, isError = false) {
         statusText.textContent = text;
@@ -125,13 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 block.dataset.x = x;
                 block.dataset.y = y;
 
-                block.addEventListener('dragover', onDragOver);
-                block.addEventListener('dragenter', onDragEnter);
-                block.addEventListener('dragleave', onDragLeave);
-                block.addEventListener('drop', onDropOnBlock);
                 block.addEventListener('click', onBlockClick);
-                block.setAttribute('draggable', true);
-                block.addEventListener('dragstart', onBlockDragStart);
 
                 farmGrid.appendChild(block);
                 rowBlocks.push(block);
@@ -249,8 +273,6 @@ document.addEventListener('DOMContentLoaded', () => {
             drone = document.createElement('div');
             drone.id = 'drone';
             farmContainer.prepend(drone);
-            drone.setAttribute('draggable', 'true');
-            drone.addEventListener('dragstart', onDroneDragStart);
         }
 
         drone.style.left = `${x * BLOCK_SIZE_PX}px`;
@@ -292,41 +314,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- DRAG-AND-DROP HANDLERS ---
 
-    function onDragStart(e) {
-        draggedItemInfo = {
-            id: e.target.id,
-            type: e.target.dataset.itemType,
-            source: 'panel'
-        };
-        e.dataTransfer.effectAllowed = 'move';
-    }
-
-    function onBlockDragStart(e) {
-        const x = parseInt(e.target.dataset.x);
-        const y = parseInt(e.target.dataset.y);
-        const type = farmGridData[y][x].type;
-
-        if (type !== 'barren_land' && type !== 'card') {
-            draggedItemInfo = {
-                type: 'block-clear',
-                x: x,
-                y: y,
-                el: e.target
-            };
-            e.dataTransfer.effectAllowed = 'move';
-        } else {
-            e.preventDefault();
-        }
-    }
-
-    function onDroneDragStart(e) {
-        draggedItemInfo = {
-            id: 'drone',
-            type: 'vehicle-on-farm'
-        };
-        e.dataTransfer.effectAllowed = 'move';
-    }
-
     function onDragOver(e) {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'move';
@@ -346,27 +333,31 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function onDropOnBlock(e) {
-        e.preventDefault();
-        const targetBlock = e.target.closest('.farm-block');
-        if (!targetBlock || !draggedItemInfo) return;
 
-        targetBlock.classList.remove('drag-over');
-        const x = parseInt(targetBlock.dataset.x);
-        const y = parseInt(targetBlock.dataset.y);
+    // --- OTHER EVENT HANDLERS ---
+
+    function onBlockClick(e) {
+        const block = e.currentTarget;
+        const x = parseInt(block.dataset.x);
+        const y = parseInt(block.dataset.y);
+        
+        if (dronePlacementMode) {
+            placeDrone(x, y);
+            dronePlacementMode = false;
+            cursor.style.backgroundImage = `url('images/cursor.png')`;
+            return;
+        }
+
         const currentType = farmGridData[y][x].type;
 
-        if (draggedItemInfo.type === 'vehicle') {
-            placeDrone(x, y);
-        } else if (draggedItemInfo.type === 'tool') {
-            const tool = draggedItemInfo.id;
-            if (tool === 'pickaxe') {
+        if (selectedTool) {
+            if (selectedTool === 'pickaxe') {
                 if (currentType === 'grass') {
                     updateBlockType(x, y, 'barren_land');
                 } else if (currentType === 'barren_land') {
                     updateBlockType(x, y, 'plough_land');
                 }
-            } else if (tool === 'harvester') {
+            } else if (selectedTool === 'harvester') {
                 if (currentType === 'final') {
                     updateBlockType(x, y, 'harvested');
                     const harvestTodo = todos.find(t => t.id === 'harvest');
@@ -381,35 +372,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 prepareLandTodo.completed = !farmGridData.flat().some(b => ['grass', 'barren_land', 'card'].includes(b.type));
             }
             updateTodoList();
+            return;
         }
-    }
 
-    function onDropOnDustbin(e) {
-        e.preventDefault();
-        dustbin.classList.remove('drag-over');
-        if (!draggedItemInfo) return;
-
-        if (draggedItemInfo.type === 'block-clear') {
-            const { x, y, el } = draggedItemInfo;
-            updateBlockType(x, y, 'barren_land');
-        } else if (draggedItemInfo.type === 'vehicle-on-farm') {
-            const droneEl = document.getElementById('drone');
-            if (droneEl) droneEl.remove();
-            dronePlaced = false;
-            checkSimReady();
-        }
-    }
-
-    // --- OTHER EVENT HANDLERS ---
-
-    function onBlockClick(e) {
         if (taskSelect.value !== 'go-to-selected') return;
 
-        const block = e.currentTarget;
-        goalPos = {
-            x: parseInt(block.dataset.x),
-            y: parseInt(block.dataset.y)
-        };
+        goalPos = { x, y };
         
         farmBlocks.flat().forEach(b => b.classList.remove('goal'));
         block.classList.add('goal');
@@ -632,13 +600,8 @@ document.addEventListener('DOMContentLoaded', () => {
     closeInfoBtn.addEventListener('click', hideInfoPopup);
 
     draggableItems.forEach(item => {
-        item.addEventListener('dragstart', onDragStart);
+        item.addEventListener('click', onToolClick);
     });
-
-    dustbin.addEventListener('dragover', onDragOver);
-    dustbin.addEventListener('dragenter', onDragEnter);
-    dustbin.addEventListener('dragleave', onDragLeave);
-    dustbin.addEventListener('drop', onDropOnDustbin);
 
     taskSelect.addEventListener('change', checkSimReady);
     methodSelect.addEventListener('change', checkSimReady);
@@ -646,4 +609,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     createFarmGrid();
     updateStatus('Welcome! Create your farm or use the default.');
+
+
+    document.addEventListener('mousemove', e => {
+        cursor.style.transform = `translate3d(${e.clientX}px, ${e.clientY}px, 0)`;
+    });
 });
