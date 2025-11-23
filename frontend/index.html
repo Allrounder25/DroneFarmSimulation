@@ -8,26 +8,41 @@
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <header>
+        <div class="header-title">
+            <h1>Drone Farming Simulation</h1>
+        </div>
+        <div class="header-controls">
+            <div class="control-group">
+                <label for="farm-width">Width:</label>
+                <input type="number" id="farm-width" value="4" min="1" max="50">
+                <label for="farm-height">Height:</label>
+                <input type="number" id="farm-height" value="4" min="1" max="50">
+            </div>
+            <button id="create-grid-btn">Create Farm</button>
+        </div>
+    </header>
+    <span class="cursor"></span>
 
     <div class="app-container">
 
         <aside id="left-panel">
             <div class="panel-section">
-                <h3>Tools</h3>
+                <h3>Warehouse</h3>
                 <div class="item-box">
-                    <div class="item" id="pickaxe" draggable="true" title="Pickaxe" data-item-type="tool">
-                        <img src="images/pickaxe.png" alt="Pickaxe">
-                    </div>
-                    <div class="item" id="harvester" draggable="true" title="Harvester" data-item-type="tool">
-                        <img src="images/harvester.png" alt="Harvester">
+                    <div class="item" id="drone-item" title="Place Drone" data-item-type="vehicle">
+                        <img src="images/drone.png" alt="Drone">
                     </div>
                 </div>
             </div>
             <div class="panel-section">
-                <h3>Warehouse</h3>
+                <h3>Tools</h3>
                 <div class="item-box">
-                    <div class="item" id="drone-item" draggable="true" title="Place Drone" data-item-type="vehicle">
-                        <img src="images/drone.png" alt="Drone">
+                    <div class="item" id="pickaxe" title="Pickaxe" data-item-type="tool">
+                        <img src="images/pickaxe.png" alt="Pickaxe">
+                    </div>
+                    <div class="item" id="harvester" title="Harvester" data-item-type="tool">
+                        <img src="images/harvester.png" alt="Harvester">
                     </div>
                 </div>
             </div>
@@ -59,16 +74,7 @@
         </main>
 
         <aside id="right-panel">
-            <div class="panel-section">
-                <h3>Controls</h3>
-                <div class="control-group">
-                    <label for="farm-width">Width:</label>
-                    <input type="number" id="farm-width" value="4" min="1" max="50">
-                    <label for="farm-height">Height:</label>
-                    <input type="number" id="farm-height" value="4" min="1" max="50">
-                </div>
-                <button id="create-grid-btn">Create Farm</button>
-            </div>
+
             <div class="panel-section">
                 <h3>Day <span id="day-display">0</span></h3>
                 <ul id="todo-list">
@@ -104,17 +110,7 @@
                 <button id="start-btn" disabled>Start Simulation</button>
             </div>
         </aside>
-
     </div>
-
-    <section id="results-section">
-        <h2>Simulation Results</h2>
-        <div id="results-content">
-            <!-- Results will be populated here -->
-        </div>
-        <button id="close-results-btn">Close</button>
-    </section>
-
     <div id="congrats-popup" class="popup-hidden">
         <div class="popup-content">
             <h2>Congratulations!</h2>
