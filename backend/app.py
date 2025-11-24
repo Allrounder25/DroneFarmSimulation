@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional
 
-from rl_logic import find_path, find_path_scan, find_path_multi_goal, find_path_tsp_nearest_neighbor
+from rl_logic import find_path, find_path_scan, find_path_multi_goal, find_path_tsp_nearest_neighbor, train_model, get_trained_action
 
 # --- Data Models ---
 class Position(BaseModel):
@@ -19,7 +19,7 @@ class BlockData(BaseModel):
 class SimulationRequest(BaseModel):
     grid: List[List[BlockData]]
     start: Position
-    goal: Optional[Position] = None
+    goal: Optional[Position]] = None
     goals: Optional[List[Position]] = None
     algorithm: str
 
@@ -27,6 +27,15 @@ class PathResponse(BaseModel):
     status: str = "success"
     path: List[Position]
     calculation_time_ms: float
+
+class TrainRequest(BaseModel):
+    size: int
+    infection_chance: float
+    wind_speed: float
+    episodes: int
+
+class GetActionRequest(BaseModel):
+    state: List[float]
 
 from fastapi.staticfiles import StaticFiles
  
@@ -81,6 +90,27 @@ async def run_simulation(request: SimulationRequest):
         else:
             raise HTTPException(status_code=404, detail="No path could be found.")
 
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/train-model")
+async def train_model_endpoint(request: TrainRequest):
+    try:
+        rewards = train_model(
+            size=request.size,
+            infection_chance=request.infection_chance,
+            wind_speed=request.wind_speed,
+            episodes=request.episodes
+        )
+        return {"status": "success", "rewards": rewards}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/get-action")
+async def get_action_endpoint(request: GetActionRequest):
+    try:
+        action = get_trained_action(request.state)
+        return {"status": "success", "action": action}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
