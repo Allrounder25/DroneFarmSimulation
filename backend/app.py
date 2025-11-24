@@ -3,10 +3,16 @@ import time
 import os
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 from typing import List, Optional
 
-from rl_logic import find_path, find_path_scan, find_path_multi_goal, find_path_tsp_nearest_neighbor, train_model, get_trained_action
+# Make sure rl_logic.py is in the same folder as app.py
+try:
+    from rl_logic import find_path, find_path_scan, find_path_multi_goal, find_path_tsp_nearest_neighbor, train_model, get_trained_action
+except ImportError:
+    print("CRITICAL ERROR: rl_logic.py not found. Make sure it is uploaded.")
+    raise
 
 # --- Data Models ---
 class Position(BaseModel):
@@ -37,13 +43,19 @@ class TrainRequest(BaseModel):
 class GetActionRequest(BaseModel):
     state: List[float]
 
-from fastapi.staticfiles import StaticFiles
- 
- 
 # --- FastAPI App Initialization ---
 app = FastAPI()
 
-# --- API Endpoint ---
+# --- CORS Configuration ---
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# --- API Endpoints ---
 @app.post("/run-simulation", response_model=PathResponse)
 async def run_simulation(request: SimulationRequest):
     try:
@@ -74,7 +86,6 @@ async def run_simulation(request: SimulationRequest):
             goal_pos = request.goal.dict()
             path_to_goal = find_path(grid_data, start_pos, goal_pos)
             if path_to_goal:
-                # For single A*, we often want a return trip
                 path_to_start = find_path(grid_data, goal_pos, start_pos)
                 if path_to_start:
                     path = path_to_goal + path_to_start[1:]
@@ -114,16 +125,11 @@ async def get_action_endpoint(request: GetActionRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# --- CORS Configuration ---
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# --- Mount Frontend (Safe Mode) ---
+# This logic prevents the app from crashing if the folder is missing
+current_dir = os.path.dirname(os.path.abspath(__file__))
+frontend_path = os.path.join(current_dir, "..", "frontend")
 
-# --- Mount Frontend ---
 if os.path.exists(frontend_path) and os.path.isdir(frontend_path):
     app.mount("/", StaticFiles(directory=frontend_path, html=True), name="static")
     print(f"Frontend mounted successfully from {frontend_path}")
@@ -132,8 +138,9 @@ else:
     @app.get("/")
     def index():
         return {"message": "Backend is running. Frontend folder not found. Check your directory structure."}
-        
 
+# --- Startup Configuration ---
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 8000))
+    # Use the PORT environment variable provided by Render
+    port = int(os.environ.get("PORT", 10000))
     uvicorn.run(app, host="0.0.0.0", port=port)
