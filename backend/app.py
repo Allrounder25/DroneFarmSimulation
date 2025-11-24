@@ -19,7 +19,7 @@ class BlockData(BaseModel):
 class SimulationRequest(BaseModel):
     grid: List[List[BlockData]]
     start: Position
-    goal: Optional[Position]] = None
+    goal: Optional[Position] = None
     goals: Optional[List[Position]] = None
     algorithm: str
 
