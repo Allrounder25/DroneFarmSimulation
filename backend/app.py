@@ -124,8 +124,15 @@ app.add_middleware(
 )
 
 # --- Mount Frontend ---
-static_files_path = os.path.join(os.path.dirname(__file__), "..", "frontend")
-app.mount("/", StaticFiles(directory=static_files_path, html=True), name="static")
+if os.path.exists(frontend_path) and os.path.isdir(frontend_path):
+    app.mount("/", StaticFiles(directory=frontend_path, html=True), name="static")
+    print(f"Frontend mounted successfully from {frontend_path}")
+else:
+    print(f"WARNING: Frontend directory not found at {frontend_path}. API is running, but UI will fail.")
+    @app.get("/")
+    def index():
+        return {"message": "Backend is running. Frontend folder not found. Check your directory structure."}
+        
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
